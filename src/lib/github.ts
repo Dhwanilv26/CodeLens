@@ -1,6 +1,9 @@
 import { db } from "@/server/db";
 import { Octokit } from "octokit";
 
+import axios from "axios";
+import { aiSummarizeCommit } from "./gemini";
+
 // very imp db is a prisma client instance
 // and it is used to interact with the database
 // and it is imported from the server/db file
@@ -25,11 +28,11 @@ export const getCommitHashes = async (
 
   const owner = match[1] as string;
   const repo = match[2] as string;
+
+  if (!owner || !repo) throw new Error("Invalid GitHub URL");
   const { data } = await octokit.rest.repos.listCommits({
     owner: owner,
     repo: repo,
-    per_page: 100,
-    page: 1,
   });
 
   const sortedCommits = data.sort(
@@ -58,9 +61,51 @@ export const pullCommits = async (projectId: string) => {
   );
   // only getting the summary of the unprocessed commits as it reduces api calls to gemini .. the commits already saved in db will not be sent to gemini again
 
-  console.log("unprocessed commits", unprocessedCommits);
-  return unprocessedCommits;
+  const summaryResponses = await Promise.allSettled(
+    unprocessedCommits.map((commit) => {
+      return summarizeCommit(githubUrl, commit.commitHash);
+    }),
+  );
+  // promise.allsettled is used here to keep the unprocessed commits even if some of the summaries fail to be fetched
+  // this is important as we need to save the unprocessed commits in db even if some of the summaries fail to be fetched
+  // promise.all is not used here as it will throw an error if any of the promises fail
+  // and we will not be able to save the unprocessed commits in db
+
+  const summaries = summaryResponses.map((response) => {
+    if (response.status === "fulfilled") {
+      return response.value as string;
+    }
+
+    return "";
+  });
+  // saving the unprocessed commits in db with the summaries fetched from gemini
+  const commits = await db.commit.createMany({
+    data: summaries.map((summary, index) => {
+      console.log(`Saving commit ${index + 1} of ${unprocessedCommits.length}`);
+      return {
+        projectId: projectId,
+        commitHash: unprocessedCommits[index]?.commitHash || "",
+        commitMessage: unprocessedCommits[index]?.commitMessage || "",
+        commitAuthorName: unprocessedCommits[index]?.commitAuthorName || "",
+        commitAuthorAvatar: unprocessedCommits[index]?.commitAuthorAvatar || "",
+        commitDate: unprocessedCommits[index]?.commitDate || "",
+        summary,
+      };
+    }),
+  });
+  return commits;
 };
+
+async function summarizeCommit(githubUrl: string, commitHash: string) {
+  const data = await axios.get(`${githubUrl}/commit/${commitHash}.diff`, {
+    headers: {
+      Accept: "application/vnd.github.v3.diff",
+      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+    },
+  });
+
+  return (await aiSummarizeCommit(data.data)) || "No summary found";
+}
 
 async function fetchProjectGithubUrl(projectId: string) {
   const project = await db.project.findUnique({
@@ -94,6 +139,3 @@ async function filterUnprocessedCommits(
   return unprocessedCommits;
 }
 
-await pullCommits("cma81k3oc0000wmy4ihe9to13")
-  .then(console.log)
-  .catch(console.error);
