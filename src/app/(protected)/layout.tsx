@@ -6,27 +6,27 @@ import { AppSidebar } from "./dashboard/app-sidebar";
 type Props = {
   children: React.ReactNode;
 };
+
 const SidebarLayout = ({ children }: Props) => {
   return (
     <SidebarProvider>
-       <AppSidebar/>
+      <AppSidebar />
 
       <main className="m-2 w-full">
-        <div className="border-sidebar-border bg-sidebar flex items-center gap-2 rounded-md border p-2 px-4 shadow">
-          {/* <SearchBar/> */}
-
-          <div className="ml-auto"></div>
-          <UserButton />
+        {/* Topbar */}
+        <div className="flex items-center justify-between rounded-lg border border-blue-300 bg-white px-4 py-3 shadow-md">
+          {/* <SearchBar /> */}
+          <div className="ml-auto">
+            <UserButton afterSignOutUrl="/" />
+          </div>
         </div>
 
-        <div className="h-4">
-            
+        {/* Spacer */}
+        <div className="h-4" />
 
-            <div className="h-[calc(100vh-6rem)] overflow-y-scroll rounded-md border border-sidebar-border bg-sidebar p-4 shadow ">
-          {" "}
-          {/* overflow-y-scroll */}
-          {children}    
-        </div>
+        {/* Main Content Box */}
+        <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-md">
+          {children}
         </div>
       </main>
     </SidebarProvider>
