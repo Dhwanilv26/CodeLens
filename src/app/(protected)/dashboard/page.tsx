@@ -1,10 +1,14 @@
 "use client";
-import { useUser } from "@clerk/nextjs";
+import useProject from "@/hooks/use-project";
 import React from "react";
 
 const DashBoardPage = () => {
-  const { user } = useUser();
-  return <div>{user?.firstName}</div>;
+  const { project } = useProject();
+  return (
+    <div>
+      <h1>{project?.name}</h1>
+    </div>
+  );
 };
 
 export default DashBoardPage;

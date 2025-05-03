@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import useProject from "@/hooks/use-project";
 
 const items = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -33,15 +34,11 @@ const items = [
   { title: "Billing", url: "/billing", icon: CreditCard },
 ];
 
-const projects = [
-  { name: "Project 1" },
-  { name: "Project 2" },
-  { name: "Project 3" },
-];
-
 export function AppSidebar() {
   const pathname = usePathname();
   const { open } = useSidebar();
+
+  const { projects, projectId, setProjectId } = useProject();
 
   return (
     <Sidebar collapsible="icon" variant="floating">
@@ -93,11 +90,21 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {projects.map((project) => (
+              {projects?.map((project) => (
                 <SidebarMenuItem key={project.name}>
                   <SidebarMenuButton asChild>
-                    <div className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm text-blue-900 hover:bg-blue-100">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-600">
+                    <div
+                      className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm text-blue-900 hover:bg-blue-100"
+                      onClick={() => setProjectId(project.id)}
+                    >
+                      <div
+                        className={cn(
+                          "text-primary flex size-6 items-center justify-center rounded-sm border bg-white text-sm",
+                          {
+                            "bg-primary text-white": project.id === projectId,
+                          },
+                        )}
+                      >
                         {project.name[0]?.toUpperCase()}
                       </div>
                       {open && <span>{project.name}</span>}

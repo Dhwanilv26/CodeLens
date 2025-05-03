@@ -5,6 +5,10 @@ import React, { useEffect } from "react";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { api } from "@/trpc/react";
+
+import { toast } from "sonner";
+import { useRefetch } from "@/hooks/use-refetch";
 
 type FormInput = {
   repoUrl: string;
@@ -15,6 +19,10 @@ type FormInput = {
 const CreatePage = () => {
   const { register, handleSubmit } = useForm<FormInput>();
 
+  const createProject = api.project.createProject.useMutation();
+
+  const refetch = useRefetch();
+
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -24,7 +32,23 @@ const CreatePage = () => {
   }, []);
 
   function onSubmit(data: FormInput) {
-    window.alert(JSON.stringify(data));
+    // window.alert(JSON.stringify(data));
+    createProject.mutate(
+      {
+        githubUrl: data.repoUrl,
+        name: data.projectName,
+        githubToken: data.githubToken,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Project created successfully!");
+          refetch();
+        },
+        onError: () => {
+          toast.error("Error creating project. Please try again.");
+        },
+      },
+    );
     return true;
   }
 
@@ -67,7 +91,11 @@ const CreatePage = () => {
               {...register("githubToken")}
               placeholder="GitHub token (for private repos)"
             />
-            <Button type="submit" className="w-full">
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={createProject.isPending}
+            >
               Create Project
             </Button>
           </form>
