@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -9,10 +10,17 @@ import {
   SidebarHeader,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenu 
+  SidebarMenu,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { Bot, CreditCard, LayoutDashboard, Presentation } from "lucide-react";
+import {
+  Bot,
+  CreditCard,
+  LayoutDashboard,
+  Plus,
+  Presentation,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -39,11 +47,31 @@ const items = [
   },
 ];
 
+const projects = [
+  {
+    name: "Project 1",
+  },
+  {
+    name: "Project 2",
+  },
+  {
+    name: "Project 3",
+  },
+];
+
 export function AppSidebar() {
   const pathname = usePathname();
+
+  const { open } = useSidebar();
   return (
     <Sidebar collapsible="icon" variant="floating">
-      <SidebarHeader>Logo</SidebarHeader>
+      <SidebarHeader>
+        <div className="flex items-center gap-2">
+          {open && (
+            <h1 className="text-primary/80 text-xl font-bold">CodeLens</h1>
+          )}
+        </div>
+      </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
@@ -71,6 +99,43 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                 );
               })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Your Projects</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {projects.map((project) => {
+                return (
+                  <SidebarMenuItem key={project.name}>
+                    <SidebarMenuButton asChild>
+                      <div>
+                        <div
+                          className={cn(
+                            "flex size-6 items-center justify-center rounded-sm border bg-white text-sm",
+                          )}
+                        >
+                          {project.name[0]?.toLocaleUpperCase()}
+                        </div>
+                        <span>{project.name}</span>
+                      </div>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+
+              {open && (<div className="h-2">
+                <SidebarMenuItem>
+                  <Link href={"/create"}>
+                    <Button variant={"outline"} size="sm">
+                      <Plus />
+                      Create Project
+                    </Button>{" "}
+                  </Link>
+                </SidebarMenuItem>
+              </div>)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
