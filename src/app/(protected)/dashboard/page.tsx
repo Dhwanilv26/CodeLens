@@ -9,9 +9,8 @@ const DashBoardPage = () => {
 
   return (
     <div className="space-y-4">
-      
-      <div className="flex items-center justify-between flex-wrap gap-4">
-      
+      {project?.id}
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="bg-primary w-fit rounded-md px-4 py-3">
           <div className="flex items-center">
             <Github className="size-5 text-white" />
@@ -30,7 +29,6 @@ const DashBoardPage = () => {
           </div>
         </div>
 
-        
         <div className="flex items-center gap-4">
           <span>TeamMembers</span>
           <span>InviteButton</span>
@@ -38,15 +36,12 @@ const DashBoardPage = () => {
         </div>
       </div>
 
-      
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-5">
         <span>Ask Question</span>
         <span>Meeting Card</span>
       </div>
 
-      <div className="mt-8">
-        Commit Log 
-      </div>
+      <div className="mt-8">Commit Log</div>
     </div>
   );
 };

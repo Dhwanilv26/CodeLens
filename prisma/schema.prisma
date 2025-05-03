@@ -36,7 +36,7 @@ model Project{
 
     userToProjects UserToProject[]
 
-    commits Commit[]
+    commits commit[]
 
 }
 
@@ -57,7 +57,7 @@ model UserToProject{
     
 }
 
-model Commit{
+model commit{
     id String @id @default(cuid())
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
