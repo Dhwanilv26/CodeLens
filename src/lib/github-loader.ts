@@ -1,5 +1,7 @@
 import { GithubRepoLoader } from "@langchain/community/document_loaders/web/github";
-export const loadGithubRepository = async (
+import { Document } from "@langchain/core/documents";
+import { aiSummarizeCode, generateEmbedding } from "./gemini";
+export const loadGithubRepo = async (
   githubUrl: string,
   githubToken?: string,
 ) => {
@@ -80,6 +82,23 @@ export const loadGithubRepository = async (
   return docs;
 };
 
-console.log(
-  await loadGithubRepository("https://github.com/Dhwanilv26/image-ai"),
-);
+export const indexGithubRepo = async (
+  projectId: string,
+  githubUrl: string,
+  githubToken?: string,
+) => {
+  const docs = await loadGithubRepo(githubUrl, githubToken);
+
+  const allEmbeddings = await generateEmbeddings(docs);
+};
+
+const generateEmbeddings = async (docs: Document[]) => {
+  // first it will generate summary of the document and then it will generate embeddings for the document
+
+  return await Promise.all(
+    docs.map(async (doc) => {
+      const summary = await aiSummarizeCode(doc);
+      const embedding=await generateEmbedding(summary);
+    }),
+  );
+};
