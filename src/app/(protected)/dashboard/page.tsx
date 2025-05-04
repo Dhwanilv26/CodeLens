@@ -10,7 +10,7 @@ const DashBoardPage = () => {
 
   return (
     <div className="space-y-4">
-      {project?.id}
+      
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="bg-primary w-fit rounded-md px-4 py-3">
           <div className="flex items-center">
