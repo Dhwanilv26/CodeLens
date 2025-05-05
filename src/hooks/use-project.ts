@@ -1,7 +1,4 @@
-import React, { use } from "react";
-
 import { api } from "@/trpc/react";
-
 import { useLocalStorage } from "usehooks-ts";
 
 const useProject = () => {
@@ -17,8 +14,8 @@ const useProject = () => {
   return {
     projects,
     project,
-    setProjectId,
     projectId,
+    setProjectId,
   };
 };
 
