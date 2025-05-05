@@ -15,6 +15,9 @@ import { useState } from "react";
 import { askQuestion } from "./actions";
 import { readStreamableValue } from "ai/rsc";
 
+import MDEditor from "@uiw/react-md-editor";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
 const AskQuestionCard = () => {
   const { project } = useProject();
   const [open, setOpen] = useState(false);
@@ -32,9 +35,9 @@ const AskQuestionCard = () => {
       return;
     }
     setLoading(true);
-    setOpen(true);
 
     const { output, filesReferences } = await askQuestion(question, project.id);
+    setOpen(true);
     setFileReferences(filesReferences);
 
     for await (const delta of readStreamableValue(output)) {
@@ -47,12 +50,30 @@ const AskQuestionCard = () => {
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[80vw]">
           <DialogHeader>
             <DialogTitle>
               <Image src="/logo.png" alt="logo" height={40} width={40} />
             </DialogTitle>
           </DialogHeader>
+
+          <div data-color-mode="light">
+            <ScrollArea className="m-auto !h-full max-h-[40vh] max-w-[70vw] overflow-auto">
+              <MDEditor.Markdown source={answer} />
+            </ScrollArea>
+          </div>
+          <Button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+            }}
+            disabled={loading}
+          >
+            Close
+          </Button>
+          {filesReferences?.map((file) => {
+            return <span key={file.fileName}>{file.fileName}</span>;
+          })}
         </DialogContent>
       </Dialog>
       <Card className="relative col-span-3">

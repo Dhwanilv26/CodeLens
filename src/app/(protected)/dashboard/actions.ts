@@ -21,20 +21,26 @@ export async function askQuestion(question: string, projectId: string) {
 
   // <=> give the cosine distance and not the cosine similarity.. so 1- is done to give the cosine similarity
 
+  
   const result = (await db.$queryRaw`
-    SELECT "filename", "sourceCode","summary"
-    1-("summaryEmbedding",<=> ${vectorQuery}::vector ) AS similarity FROM "SourceCodeEmbedding"
-    WHERE 1-("summaryEmbedding"<=> ${vectorQuery}::vector)>0.5
-    AND "projectId"=${projectId}
+    SELECT "fileName", "sourceCode", "summary",
+      1 - ("summaryEmbedding" <=> ${vectorQuery}::vector) AS similarity
+    FROM "SourceCodeEmbedding"
+    WHERE 1 - ("summaryEmbedding" <=> ${vectorQuery}::vector) > 0.2
+      AND "projectId" = ${projectId}
     ORDER BY similarity DESC
     LIMIT 10
-    `) as { fileName: string; sourceCode: string; summary: string }[];
+  `) as { fileName: string; sourceCode: string; summary: string }[];
+
+  
 
   let context = "";
   // feeding the context with top 10 similarity search vectors
   for (const doc of result) {
     context += `source: ${doc.fileName}\ncode content:${doc.sourceCode}\n summary of file ${doc.summary}`;
   }
+
+  console.log("context is : ", context);
 
   // immediately invoked function expression
   (async () => {

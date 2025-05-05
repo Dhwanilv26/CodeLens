@@ -37,6 +37,7 @@ export const loadGithubRepo = async (
 
       // Node & build output
       "node_modules/**",
+      "public/**",
       "dist/**",
       "build/**",
       ".next/**",
