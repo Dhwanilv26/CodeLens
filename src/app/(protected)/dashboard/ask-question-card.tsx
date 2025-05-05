@@ -17,6 +17,9 @@ import { readStreamableValue } from "ai/rsc";
 
 import MDEditor from "@uiw/react-md-editor";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import CodeReferences from "./code-references";
+import { api } from "@/trpc/react";
+import { toast } from "sonner";
 
 const AskQuestionCard = () => {
   const { project } = useProject();
@@ -26,6 +29,8 @@ const AskQuestionCard = () => {
   const [filesReferences, setFileReferences] =
     useState<{ fileName: string; sourceCode: string; summary: string }[]>();
   const [answer, setAnswer] = useState("");
+
+  const saveAnswer = api.project.saveAnswer.useMutation();
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     setAnswer("");
@@ -52,14 +57,43 @@ const AskQuestionCard = () => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[80vw]">
           <DialogHeader>
-            <DialogTitle>
-              <Image src="/logo.png" alt="logo" height={40} width={40} />
-            </DialogTitle>
+            <div className="flex items-center gap-2">
+              <DialogTitle>
+                <Image src="/logo.png" alt="logo" height={40} width={40} />
+              </DialogTitle>
+
+              <Button
+                variant={"outline"}
+                disabled={saveAnswer.isPending}
+                onClick={() => {
+                  saveAnswer.mutate(
+                    {
+                      projectId: project!.id,
+                      question,
+                      answer,
+                      filesReferences,
+                    },
+                    {
+                      onSuccess: () => {
+                        toast.success("Answer saved!");
+                      },
+                      onError: () => {
+                        toast.error("failed to save answer");
+                      },
+                    },
+                  );
+                }}
+              >
+                Save Answer
+              </Button>
+            </div>
           </DialogHeader>
 
           <div data-color-mode="light">
             <ScrollArea className="m-auto !h-full max-h-[40vh] max-w-[70vw] overflow-auto">
               <MDEditor.Markdown source={answer} />
+              <div className="h-4"></div>
+              <CodeReferences filesReferences={filesReferences || []} />
             </ScrollArea>
           </div>
           <Button
@@ -71,9 +105,6 @@ const AskQuestionCard = () => {
           >
             Close
           </Button>
-          {filesReferences?.map((file) => {
-            return <span key={file.fileName}>{file.fileName}</span>;
-          })}
         </DialogContent>
       </Dialog>
       <Card className="relative col-span-3">

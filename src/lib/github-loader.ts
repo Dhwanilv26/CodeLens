@@ -15,7 +15,6 @@ export const loadGithubRepo = async (
       "yarn.lock",
       "pnpm-lock.yaml",
       "pnpmfile.js",
-      "package.json",
 
       // TypeScript configs
       "tsconfig.json",

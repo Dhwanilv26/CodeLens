@@ -16,7 +16,7 @@ export const projectRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       // Access GitHub token directly from the input or ctx
       const token = input.githubToken || process.env.GITHUB_TOKEN;
-      
+
       // Create project
       const project = await ctx.db.project.create({
         data: {
@@ -29,13 +29,13 @@ export const projectRouter = createTRPCRouter({
           },
         },
       });
-      
+
       // Index the GitHub repo with the token
       await indexGithubRepo(project.id, input.githubUrl, token); // Pass token directly here
 
       // Pull commits after indexing
       await pullCommits(project.id);
-      
+
       return project;
     }),
 
@@ -61,9 +61,30 @@ export const projectRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Pull commits directly
       await pullCommits(input.projectId);
-      
+
       return await ctx.db.commit.findMany({
         where: { projectId: input.projectId },
+      });
+    }),
+
+  saveAnswer: protectedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        question: z.string(),
+        answer: z.string(),
+        filesReferences: z.any(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.db.question.create({
+        data: {
+          question: input.question,
+          answer: input.answer,
+          filesReferences: input.filesReferences,
+          projectId: input.projectId,
+          userId: ctx.user.userId!,
+        },
       });
     }),
 });
