@@ -2,6 +2,7 @@ import { pullCommits } from "@/lib/github";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 import { z } from "zod";
+import { indexGithubRepo } from "@/lib/github-loader";
 
 export const projectRouter = createTRPCRouter({
   createProject: protectedProcedure
@@ -9,15 +10,18 @@ export const projectRouter = createTRPCRouter({
       z.object({
         name: z.string(),
         githubUrl: z.string(),
-        githubToken: z.string().optional(),
+        githubToken: z.string().optional(), // Token is optional, but can be passed
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      // Access GitHub token directly from the input or ctx
+      const token = input.githubToken || process.env.GITHUB_TOKEN;
+      
+      // Create project
       const project = await ctx.db.project.create({
         data: {
           githubUrl: input.githubUrl,
           name: input.name,
-
           userToProjects: {
             create: {
               userId: ctx.user.userId!,
@@ -25,7 +29,13 @@ export const projectRouter = createTRPCRouter({
           },
         },
       });
+      
+      // Index the GitHub repo with the token
+      await indexGithubRepo(project.id, input.githubUrl, token); // Pass token directly here
+
+      // Pull commits after indexing
       await pullCommits(project.id);
+      
       return project;
     }),
 
@@ -42,7 +52,6 @@ export const projectRouter = createTRPCRouter({
     });
   }),
 
-  // accepting the data form the frontend letting the backend process it and returning the data to the frontend from the database
   getCommits: protectedProcedure
     .input(
       z.object({
@@ -50,7 +59,9 @@ export const projectRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      pullCommits(input.projectId).then().catch(console.error);
+      // Pull commits directly
+      await pullCommits(input.projectId);
+      
       return await ctx.db.commit.findMany({
         where: { projectId: input.projectId },
       });

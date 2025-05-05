@@ -76,7 +76,7 @@ export const loadGithubRepo = async (
     ],
     recursive: true,
     unknown: "warn",
-    maxConcurrency: 5,
+    maxConcurrency: 2,
   });
 
   const docs = await loader.load();
@@ -99,6 +99,7 @@ export const indexGithubRepo = async (
       if (!embedding) {
         return;
       }
+      // this just creates a new source code embedding in the database (its a row in the database)
 
       const sourceCodeEmbedding = await db.sourceCodeEmbedding.create({
         data: {
@@ -111,6 +112,9 @@ export const indexGithubRepo = async (
 
       // as prisma does not support vector format , we need to do it manually by using raw query
       // we need to convert the embedding to vector format and then insert it into the database
+
+      // now where are upadting the embedding in the database by a raw query as prisma does not support vector format
+      // we are using the id of the sourceCodeEmbedding to update the embedding in the database
       await db.$executeRaw`
         UPDATE "SourceCodeEmbedding" 
         SET "summaryEmbedding" = ${embedding.embedding}::vector
