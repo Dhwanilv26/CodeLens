@@ -3,7 +3,6 @@ import React from "react";
 import useProject from "@/hooks/use-project";
 import { api } from "@/trpc/react";
 import MeetingCard from "../dashboard/meeting-card";
-import { divider } from "@uiw/react-md-editor";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
