@@ -112,7 +112,7 @@ const QaPage = () => {
             </ScrollArea>
           </div>
           <div className="h-8"></div>
-          <CodeReferences
+           <CodeReferences
             filesReferences={question.filesReferences ?? ([] as any)}
           />
         </SheetContent>
