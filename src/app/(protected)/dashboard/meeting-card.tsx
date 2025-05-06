@@ -6,9 +6,21 @@ import { uploadFile } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Presentation, Upload } from "lucide-react";
 
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import { api } from "@/trpc/react";
+import useProject from "@/hooks/use-project";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+
 const MeetingCard = () => {
   const [progress, setProgress] = useState<number | undefined>();
   const [isUploading, setIsUploading] = useState(false);
+
+  const uploadMeeting = api.project.uploadMeeting.useMutation();
+
+  const { project } = useProject();
+
+  const router = useRouter();
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -22,8 +34,25 @@ const MeetingCard = () => {
       const file = acceptedFiles[0];
       if (!file) return;
 
-      // after getting file, now upload it to cloudinary
+      // after getting file, now upload it to firebase
       const downloadURL = await uploadFile(file as File, setProgress);
+
+      uploadMeeting.mutate(
+        {
+          projectId: project!.id,
+          meetingUrl: downloadURL,
+          name: file.name,
+        },
+        {
+          onSuccess: () => {
+            toast.success("Meeting uploaded successfully");
+            router.push("/meetings");
+          },
+          onError: () => {
+            toast.error("Failed to upload meeting");
+          },
+        },
+      );
       setIsUploading(false);
     },
   });
@@ -51,6 +80,23 @@ const MeetingCard = () => {
             </Button>
           </div>
         </>
+      )}
+
+      {isUploading && (
+        <div>
+          <CircularProgressbar
+            value={progress || 0}
+            text={`${progress}%`}
+            className="size-20"
+            styles={buildStyles({
+              pathColor: "#2563eb",
+              textColor: "#2563eb",
+            })}
+          />
+          <p className="text-center text-sm text-gray-500">
+            Uploading your meeting..
+          </p>
+        </div>
       )}
     </Card>
   );

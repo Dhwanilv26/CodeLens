@@ -1,5 +1,10 @@
 import { initializeApp } from "firebase/app";
-import { getDownloadURL, getStorage, ref, uploadBytesResumable } from "firebase/storage";
+import {
+  getDownloadURL,
+  getStorage,
+  ref,
+  uploadBytesResumable,
+} from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAUJu79lJ_Zwt56UJbCFbv5q19RU1gHN84",
@@ -18,12 +23,12 @@ export const storage = getStorage(app);
 export async function uploadFile(
   file: File,
   setProgress?: (progress: number) => void,
-): Promise<void> {
+): Promise<string> {
   try {
     const storageRef = ref(storage, file.name);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       uploadTask.on(
         "state_changed",
         (snapshot) => {
@@ -45,13 +50,12 @@ export async function uploadFile(
           console.error("Upload failed:", error);
           reject(error);
         },
-        ()=>{
-            getDownloadURL(uploadTask.snapshot.ref).then(downloadUrl=>{
-                console.log("File available at:", downloadUrl);
-                resolve();
-            })
-        }
-       
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl) => {
+            console.log("File available at:", downloadUrl);
+            resolve(downloadUrl as string);
+          });
+        },
       );
     });
   } catch (error) {
