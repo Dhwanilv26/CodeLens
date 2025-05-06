@@ -7,6 +7,8 @@ import { divider } from "@uiw/react-md-editor";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { useRefetch } from "@/hooks/use-refetch";
 
 const MeetingsPage = () => {
   const { projectId } = useProject();
@@ -17,6 +19,9 @@ const MeetingsPage = () => {
       refetchInterval: 4000,
     },
   );
+  const refetch = useRefetch();
+
+  const deleteMeeting = api.project.deleteMeeting.useMutation();
   return (
     <>
       <MeetingCard />
@@ -56,14 +61,29 @@ const MeetingsPage = () => {
                 <p className="truncate">{meeting.issues.length} issues</p>
               </div>
             </div>
-            <div className="flex items-center flex-none gap-x-4">
-                <Link
-                href={`/meetings/${meeting.id}`}>
-                    <Button
-                    variant={'outline'}>
-                        View Meeting
-                    </Button>
-                </Link>
+            <div className="flex flex-none items-center gap-x-4">
+              <Link href={`/meetings/${meeting.id}`}>
+                <Button variant={"outline"}>View Meeting</Button>
+              </Link>
+
+              <Button
+                size="sm"
+                disabled={deleteMeeting.isPending}
+                variant="destructive"
+                onClick={() =>
+                  deleteMeeting.mutate(
+                    { meetingId: meeting.id },
+                    {
+                      onSuccess: () => {
+                        toast.success("Meeting deleted successfully");
+                        refetch();
+                      },
+                    },
+                  )
+                }
+              >
+                Delete Meeting
+              </Button>
             </div>
           </li>
         ))}
