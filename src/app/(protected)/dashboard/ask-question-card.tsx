@@ -20,6 +20,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import CodeReferences from "./code-references";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
+import { useRefetch } from "@/hooks/use-refetch";
 
 const AskQuestionCard = () => {
   const { project } = useProject();
@@ -31,6 +32,8 @@ const AskQuestionCard = () => {
   const [answer, setAnswer] = useState("");
 
   const saveAnswer = api.project.saveAnswer.useMutation();
+
+  const refetch = useRefetch();
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     setAnswer("");
@@ -76,6 +79,7 @@ const AskQuestionCard = () => {
                     {
                       onSuccess: () => {
                         toast.success("Answer saved!");
+                        refetch();
                       },
                       onError: () => {
                         toast.error("failed to save answer");
