@@ -1,9 +1,7 @@
-// api/process-meeting
-
 import { processMeeting } from "@/lib/assembly";
 import { db } from "@/server/db";
 import { auth } from "@clerk/nextjs/server";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 const bodyParser = z.object({
@@ -12,19 +10,23 @@ const bodyParser = z.object({
   meetingId: z.string(),
 });
 
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unatuthorized" }, { status: 401 });
   }
 
   try {
     const body = await req.json();
+    console.log("Parsed body:", body);
+
     const { meetingUrl, projectId, meetingId } = bodyParser.parse(body);
+    console.log("Body parsed successfully");
 
     const { summaries } = await processMeeting(meetingUrl);
+    console.log("Process meeting successful:", summaries);
 
     await db.issue.createMany({
       data: summaries.map((summary) => ({
@@ -47,7 +49,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json("internal server error", { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

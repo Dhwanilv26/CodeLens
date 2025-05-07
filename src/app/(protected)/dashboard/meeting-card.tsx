@@ -1,12 +1,11 @@
 "use client";
-import { Card } from "@/components/ui/card";
-import { useDropzone } from "react-dropzone";
-import React, { useState } from "react";
-import { uploadFile } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Presentation, Upload } from "lucide-react";
-
-import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import React from "react";
+import { useDropzone } from "react-dropzone";
+import { buildStyles, CircularProgressbar } from "react-circular-progressbar";
+import { uploadFile } from "@/lib/firebase";
 import { api } from "@/trpc/react";
 import useProject from "@/hooks/use-project";
 import { toast } from "sonner";
@@ -15,15 +14,13 @@ import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 
 const MeetingCard = () => {
-  const [progress, setProgress] = useState<number | undefined>();
-  const [isUploading, setIsUploading] = useState(false);
-
+  const [isUploading, setIsUploading] = React.useState(false);
+  const [progress, setProgress] = React.useState(0);
+  const router = useRouter();
   const uploadMeeting = api.project.uploadMeeting.useMutation();
-
   const { project } = useProject();
 
-  const router = useRouter();
-
+  // MEETING AUDIO PROCESSING FUCNTION USING ASSEMBLY-AI
   const processMeeting = useMutation({
     mutationFn: async (data: {
       meetingUrl: string;
@@ -31,6 +28,7 @@ const MeetingCard = () => {
       projectId: string;
     }) => {
       const { meetingUrl, meetingId, projectId } = data;
+      // hitting the /api/process-meeting endpoint to process the meeting
       const response = await axios.post("/api/process-meeting", {
         meetingUrl,
         meetingId,
@@ -40,6 +38,7 @@ const MeetingCard = () => {
     },
   });
 
+  
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
       "audio/*": [".mp3", ".wav", ".m4a"],
@@ -47,17 +46,22 @@ const MeetingCard = () => {
     multiple: false,
     maxSize: 50_000_000,
     onDrop: async (acceptedFiles) => {
+      if (!project) return;
+
       setIsUploading(true);
       console.log(acceptedFiles);
+
       const file = acceptedFiles[0];
       if (!file) return;
 
-      // after getting file, now upload it to firebase
-      const downloadURL = await uploadFile(file as File, setProgress);
-
+      
+      const downloadURL = (await uploadFile(
+        file as File,
+        setProgress,
+      )) as string;
       uploadMeeting.mutate(
         {
-          projectId: project!.id,
+          projectId: project.id,
           meetingUrl: downloadURL,
           name: file.name,
         },
@@ -65,10 +69,11 @@ const MeetingCard = () => {
           onSuccess: (meeting) => {
             toast.success("Meeting uploaded successfully");
             router.push("/meetings");
+          
             processMeeting.mutateAsync({
               meetingUrl: downloadURL,
               meetingId: meeting.id,
-              projectId: project!.id,
+              projectId: project.id,
             });
           },
           onError: () => {
@@ -76,9 +81,11 @@ const MeetingCard = () => {
           },
         },
       );
+
       setIsUploading(false);
     },
   });
+
   return (
     <Card
       className="col-span-2 flex flex-col items-center justify-center p-10"
@@ -106,18 +113,18 @@ const MeetingCard = () => {
       )}
 
       {isUploading && (
-        <div>
+        <div className="">
           <CircularProgressbar
-            value={progress || 0}
+            value={progress}
             text={`${progress}%`}
             className="size-20"
             styles={buildStyles({
-              pathColor: "#2563eb",
-              textColor: "#2563eb",
+              pathColor: "black",
+              textColor: "black",
             })}
           />
           <p className="text-center text-sm text-gray-500">
-            Uploading your meeting..
+            Uploading your meeting...
           </p>
         </div>
       )}
