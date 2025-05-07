@@ -1,5 +1,4 @@
 import { AssemblyAI } from "assemblyai";
-import { start } from "repl";
 
 const client = new AssemblyAI({
   apiKey: process.env.ASSEMBLYAI_API_KEY!,
@@ -8,9 +7,8 @@ const client = new AssemblyAI({
 function msToTime(ms: number) {
   const seconds = ms / 1000;
   const minutes = Math.floor(seconds / 60);
-  const remseconds = Math.floor(seconds % 60);
-
-  return `${minutes.toString().padStart(2, "0")}:${remseconds.toString().padStart(2, "0")}}`;
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
 
 export const processMeeting = async (meetingUrl: string) => {

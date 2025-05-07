@@ -6,6 +6,8 @@ import React from "react";
 import CommitLog from "./commit-log";
 import AskQuestionCard from "./ask-question-card";
 import MeetingCard from "./meeting-card";
+import ArchiveButton from "./archive-buttom";
+import InviteButton from "./invite-button";
 
 type Props = {};
 
@@ -38,7 +40,9 @@ const Page = ({}: Props) => {
 
         {/* TEAM MEMBERS, INVITE, ARCHIVE */}
         <div className="flex items-center gap-4">
-          TeamMembers InviteButton ArchiveButton
+          TeamMembers
+          <InviteButton />
+          <ArchiveButton />
         </div>
       </div>
 
