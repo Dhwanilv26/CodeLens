@@ -8,6 +8,7 @@ import AskQuestionCard from "./ask-question-card";
 import MeetingCard from "./meeting-card";
 import ArchiveButton from "./archive-buttom";
 import InviteButton from "./invite-button";
+import TeamMembers from "./team-members";
 
 type Props = {};
 
@@ -40,7 +41,7 @@ const Page = ({}: Props) => {
 
         {/* TEAM MEMBERS, INVITE, ARCHIVE */}
         <div className="flex items-center gap-4">
-          TeamMembers
+          <TeamMembers />
           <InviteButton />
           <ArchiveButton />
         </div>

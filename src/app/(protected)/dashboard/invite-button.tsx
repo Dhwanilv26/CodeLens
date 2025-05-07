@@ -22,15 +22,13 @@ const InviteButton = () => {
           <DialogHeader>
             <DialogTitle>Invite Team Members</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-gray-500">
-            Just copy and paste this link
-          </p>
+          <p className="text-sm text-gray-500">Just copy and paste this link</p>
           <Input
             className="mt-4"
             readOnly
             onClick={() => {
               navigator.clipboard.writeText(
-                `${window.location.origin}/join/${projectId}`,
+                `${window?.location.origin}/join/${projectId}`,
               );
               toast.success("Link copied to clipboard");
             }}

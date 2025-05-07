@@ -7,7 +7,6 @@ import {
   Bot,
   ArrowRight,
   Star,
-  FileText,
   GitCommit,
   MessageSquare,
 } from "lucide-react";
@@ -125,7 +124,7 @@ const LandingPage = () => {
             >
               <div className="absolute inset-0 -z-10 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 opacity-10 blur-xl"></div>
               <Image
-                src="/repo-analysis-preview.png"
+                src="/demo.png"
                 alt="CodeLens Repository Analysis Preview"
                 width={1200}
                 height={600}
