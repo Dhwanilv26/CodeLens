@@ -5,24 +5,38 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-const promptcommit = [
-  "You are an expert programmer summarizing git diffs.",
-  "Git diffs show changes to files: lines starting with '-' indicate deletions, '+' indicate additions, unchanged lines provide context. File headers (e.g., 'diff --git a/<file> b/<file>') identify files, hunk headers (e.g., '@@ -start,end +start,end @@') show changed line ranges.",
-  "Task: Summarize **all** changes in the provided diff in a concise bullet-point list, covering every file and hunk.",
-  "Requirements:",
-  "- Include **all** modified files and their changes, no matter how many.",
-  "- For each file, summarize **all** hunks (e.g., added/removed code, modified logic).",
-  "- Use technical language (e.g., function names, variable changes).",
-  "- Handle edge cases: whitespace/formatting ('Whitespace cleanup in <file>'), new/deleted files ('Added <file>'), binary files ('Updated binary <file>'), unclear diffs (best-effort summary).",
-  "- Avoid vague terms like 'Updated file'; be specific (e.g., 'Added null check in validateInput').",
-  "- Do **not** limit to a few bullets; cover **all** changes, even for large diffs.",
-  "- If diff is empty/invalid, state 'No changes found' or 'Invalid diff'.",
-  "- Never leave response blank; always summarize, even for minor changes.",
-  "Summarize the following diff:\n\n${diff}",
-];
-
 export const aiSummarizeCommit = async (diff: string) => {
-  const response = await model.generateContent([promptcommit.join("\n")]);
+  const response = await model.generateContent([
+    `You are an expert programmer, and you are trying to summarize a git diff.
+    Reminders about the git diff format:
+    For every file, there are a few metadata lines, like (for example):
+    \`\`\`
+    diff -- git a/lib/index.js b/lib/index.js
+    index aadf691 .. bfef603 100644
+    --- a/lib/index.js
+    +++ b/lib/index.js
+    \`\`\`
+    This means that \'lib/index.js\' was modified in this commit. Note that this is only an example.
+    Then there is a specifier of the lines that were modified.
+    A line starting with \'+\' means it was added.
+    A line that starting with \'-\' means that line was deleted.
+    A line that starts with neither \'+\' nor \'-\' is code given for context and better understanding.
+    It is not part of the diff.
+    [ ... ]
+    EXAMPLE SUMMARY COMMENTS:
+    \`\`\`
+    . Raised the amount of returned recordings from \'10\ to \'100\' [packages/server/recordings_api.ts], [packages/server/constants.ts]
+    . Fixed a typo in the github action name [.github/workflows/gpt-commit-summarizer.yml]
+    . Moved the \'octokit\ initialization to a separate file [src/ootokit.ts], [src/index.ts]
+    . Added an OpenAI API for completions [packages/utils/apis/openai.ts]
+    . Lowered numeric tolerance for test files
+    Most commits will have less comments than this examples list.
+    The last comment does not include the file names,
+    because there were more than two relevant files in the hypothetical commit.
+    Do not include parts of the example in your summary.
+    It is given only as an example of appropriate comments. `,
+    `Please summarise the following diff file: \n\n${diff}`,
+  ]);
 
   return response.response.text();
 };
@@ -33,12 +47,13 @@ export async function aiSummarizeCode(doc: Document) {
   const code = doc.pageContent.slice(0, 10000);
 
   const prompt = [
-    `You are a senior software engineer helping onboard junior developers to a codebase.`,
-    `Your job is to summarize the purpose of the following file.`,
-    `File path: ${doc.metadata.source}`,
-    `Code:\n"""${code}"""`,
-    `Provide a concise summary of what this file likely does. If the code is incomplete, give your best guess based on what's available.`,
-    `Always respond with a summary, even if it's partial or uncertain. Do not reply with "I don't know".`,
+    `You are an intelligent senior software engineer who specialises in onboarding junior software engineers onto projects`,
+    `You are onboarding a junior software engineer and explaining to them the purpose of the ${doc.metadata.source} file
+            Here is the code:
+            ---
+            ${code}
+            ---
+            Give a summary no more than 100 words of the code above`,
   ];
 
   try {
