@@ -47,7 +47,8 @@ const CreatePage = () => {
             toast.success("Project created successfully");
             refetch();
           },
-          onError: () => {
+          onError: (error) => {
+            console.log(error);
             toast.error("Failed to create project");
           },
         },
@@ -68,7 +69,6 @@ const CreatePage = () => {
   return (
     <div className="flex min-h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br from-blue-100 via-white to-blue-50 px-4 py-10">
       <div className="flex w-full max-w-4xl rounded-2xl bg-white p-8 shadow-xl md:flex-row md:items-center md:gap-12">
-        {/* Image Section */}
         <div className="flex justify-center md:w-1/2">
           <Image
             src="/undraw_developer.svg"
@@ -79,7 +79,6 @@ const CreatePage = () => {
           />
         </div>
 
-        {/* Form Section */}
         <div className="w-full max-w-md md:w-1/2">
           <h1 className="text-2xl font-semibold text-blue-900">
             Link your GitHub Repository

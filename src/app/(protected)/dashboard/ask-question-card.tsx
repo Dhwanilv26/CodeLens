@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import {useRefetch} from "@/hooks/use-refetch"; // Update the path to the correct module
 import { askQuestion } from "./actions";
 import CodeReferences from "./code-references"; // Ensure the file exists with this name and path
+import Image from "next/image";
 
 const AskQuestionCrad = () => {
   const { project } = useProject();
@@ -59,8 +60,13 @@ const AskQuestionCrad = () => {
           <DialogHeader>
             <div className="flex items-center gap-2">
               <DialogTitle>
-                {/* <Image src=></Image> */}
-                Logo
+                <Image
+                src="/logo.png"
+                alt="logo"
+                width={32}
+                height={32}
+                  />
+               
               </DialogTitle>
               <Button
                 variant={"outline"}
