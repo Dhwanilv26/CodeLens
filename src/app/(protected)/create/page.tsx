@@ -9,6 +9,7 @@ import { api } from "@/trpc/react";
 
 import { toast } from "sonner";
 import { useRefetch } from "@/hooks/use-refetch";
+import { Info } from "lucide-react";
 
 type FormInput = {
   repoUrl: string;
@@ -21,6 +22,8 @@ const CreatePage = () => {
 
   const createProject = api.project.createProject.useMutation();
 
+  const checkCredits = api.project.checkCredits.useMutation();
+
   const refetch = useRefetch();
 
   useEffect(() => {
@@ -32,25 +35,35 @@ const CreatePage = () => {
   }, []);
 
   function onSubmit(data: FormInput) {
-    // window.alert(JSON.stringify(data));
-    createProject.mutate(
-      {
+    if (!!checkCredits.data) {
+      createProject.mutate(
+        {
+          githubUrl: data.repoUrl,
+          name: data.projectName,
+          githubToken: data.githubToken,
+        },
+        {
+          onSuccess: () => {
+            toast.success("Project created successfully");
+            refetch();
+          },
+          onError: () => {
+            toast.error("Failed to create project");
+          },
+        },
+      );
+    } else {
+      checkCredits.mutate({
         githubUrl: data.repoUrl,
-        name: data.projectName,
         githubToken: data.githubToken,
-      },
-      {
-        onSuccess: () => {
-          toast.success("Project created successfully!");
-          refetch();
-        },
-        onError: () => {
-          toast.error("Error creating project. Please try again.");
-        },
-      },
-    );
+      });
+    }
+
     return true;
   }
+  const hasEnoughCredits = checkCredits?.data?.userCredits
+    ? checkCredits.data.fileCount <= checkCredits.data.userCredits
+    : true;
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center overflow-hidden bg-gradient-to-br from-blue-100 via-white to-blue-50 px-4 py-10">
@@ -91,12 +104,32 @@ const CreatePage = () => {
               {...register("githubToken")}
               placeholder="GitHub token (for private repos)"
             />
+            {!!checkCredits.data && (
+              <div className="mt-4 rounded-md border border-orange-200 bg-orange-50 px-4 py-2 text-orange-700">
+                <div className="flex items-center gap-2">
+                  <Info className="size-4" />
+                  <p className="text-sm">
+                    You will be charged{" "}
+                    <strong>{checkCredits.data?.fileCount}</strong> credits for
+                    this repository.
+                  </p>
+                </div>
+                <p className="ml-6 text-sm text-blue-600">
+                  You have <strong>{checkCredits.data?.userCredits}</strong>{" "}
+                  credits remaining.
+                </p>
+              </div>
+            )}
             <Button
               type="submit"
               className="w-full"
-              disabled={createProject.isPending}
+              disabled={
+                createProject.isPending ||
+                checkCredits.isPending ||
+                !hasEnoughCredits
+              }
             >
-              Create Project
+              {!!checkCredits.data ? "Create Project" : "Check Credits"}
             </Button>
           </form>
         </div>

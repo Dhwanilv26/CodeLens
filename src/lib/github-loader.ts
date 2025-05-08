@@ -2,6 +2,73 @@ import { GithubRepoLoader } from "@langchain/community/document_loaders/web/gith
 import { Document } from "@langchain/core/documents";
 import { aiSummarizeCode, generateEmbedding } from "./gemini";
 import { db } from "@/server/db";
+import { Octokit } from "octokit";
+
+//recursive function to calculate number of files in a github repository.
+const getFileCount = async (
+  path: string,
+  octokit: Octokit,
+  githubOwner: string,
+  githubRepo: string,
+  acc: number = 0,
+) => {
+  // get the contents of the path
+  const { data } = await octokit.rest.repos.getContent({
+    owner: githubOwner,
+    repo: githubRepo,
+    path,
+  });
+
+  // if data is not array, then it is just one file
+  if (!Array.isArray(data) && data.type === "file") {
+    return acc + 1;
+  }
+
+  // if data is array, means there are subfolders
+  if (Array.isArray(data)) {
+    let fileCount = 0;
+    const directories: string[] = [];
+
+    for (const item of data) {
+      // if item is a directory, add it to the list of directories. else, fileCount++
+      if (item.type === "dir") {
+        directories.push(item.path);
+      } else {
+        fileCount++;
+      }
+    }
+
+    // Now if number of directories is more than 0, then do a recursive call to  getFileCount to each directory
+    if (directories.length > 0) {
+      const directoryCounts = await Promise.all(
+        directories.map((dirPath) =>
+          getFileCount(dirPath, octokit, githubOwner, githubRepo, 0),
+        ),
+      );
+
+      fileCount += directoryCounts.reduce((acc, count) => acc + count, 0);
+    }
+
+    return acc + fileCount;
+  }
+
+  return acc;
+};
+
+export const checkCredits = async (githubUrl: string, githubToken?: string) => {
+  // find out how many total files are there in the repo
+
+  const octokit = new Octokit({ auth: githubToken });
+  const githubOwner = githubUrl.split("/")[3];
+  const githubRepo = githubUrl.split("/")[4];
+
+  if (!githubOwner || !githubRepo) {
+    return 0;
+  }
+
+  const fileCount = await getFileCount("", octokit, githubOwner, githubRepo, 0);
+  return fileCount;
+};
 export const loadGithubRepo = async (
   githubUrl: string,
   githubToken?: string,
