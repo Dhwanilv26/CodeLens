@@ -7,13 +7,13 @@ import {
 } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAUJu79lJ_Zwt56UJbCFbv5q19RU1gHN84",
-  authDomain: "codelens-bc84d.firebaseapp.com",
-  projectId: "codelens-bc84d",
-  storageBucket: "codelens-bc84d.firebasestorage.app",
-  messagingSenderId: "793868419330",
-  appId: "1:793868419330:web:0217e5bfff6c0583e2021b",
-  measurementId: "G-N9NS57JLS8",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
